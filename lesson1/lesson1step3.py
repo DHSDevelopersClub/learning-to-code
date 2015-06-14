@@ -38,7 +38,7 @@ def on_draw():
 @window.event
 def on_mouse_motion(mouse_x, mouse_y, dx, dy):
     # Calculate the furthest right we want our paddle to go.
-    right_side = window.width - paddle_image.width / 2
+    right_side = window.width - paddle_sprite.width / 2
     
     # If the mouse goes further than that, snap it back to the 
     # limit.  This won't change the actual position of the mouse 

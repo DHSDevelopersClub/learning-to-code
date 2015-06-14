@@ -23,8 +23,8 @@ def on_draw():
     
 @window.event
 def on_mouse_motion(mouse_x, mouse_y, dx, dy):
-    right_side = window.width - paddle_image.width / 2
-    left_side = paddle_image.width / 2
+    right_side = window.width - paddle_sprite.width / 2
+    left_side = paddle_sprite.width / 2
     
     if mouse_x > right_side:
         mouse_x = right_side

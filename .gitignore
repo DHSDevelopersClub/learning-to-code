@@ -55,3 +55,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# gedit and vim backup files
+*.py~
