@@ -4,14 +4,19 @@ __author__ = 'Alexander Otavka (zotavka@gmail.com)'
 __copyright__ = 'Copyright (c) 2015 Alexander Otavka. All rights reserved.'
 
 
-from math import sqrt, sin, cos, atan2
+from math import sqrt, sin, cos, atan2, copysign
 
 
 class Vector(object):
     '''A mutable two dimensional vector class.'''
 
     def __init__(self, vector=None):
-        '''Initialize a vector.'''
+        '''Initialize a vector.
+
+        :Parameters:
+            `vector` : object
+                Iterable with numbers at indices 0 and 1, or an object with attributes `x` and `y`.
+        '''
         if vector is None:
             self._x = 0
             self._y = 0
@@ -66,6 +71,12 @@ class Vector(object):
         '''Direction of the vector.'''
         return atan2(self.y, self.x)
 
+    def copysign(self, other):
+        if other.x != 0:
+            self.x = copysign(self.x, other.x)
+        if other.y != 0:
+            self.y = copysign(self.y, other.y)
+
     def __add__(self, other):
         return Vector.new(self.x + other.x, self.y + other.y)
 
@@ -101,8 +112,11 @@ class Vector(object):
     def __neg__(self):
         return Vector.new(-self.x, -self.y)
 
+    def __nonzero__(self):
+        return self.x != 0 or self.y != 0
+
     def __eq__(self, other):
-        return self.x == other.x and self.y == other.y
+        return isinstance(other, Vector) and self.x == other.x and self.y == other.y
 
     def __ne__(self, other):
         return not self.__eq__(other)

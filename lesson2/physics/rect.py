@@ -14,8 +14,9 @@ class Rect(object):
     def __init__(self, rect=None):
         '''Initialize a rect from an object with position and size.
 
-        Parameters:
-            rect (object): An object with properties `x`, `y`, `width`, `height`.
+        :Parameters:
+            `rect` : object
+                An object with properties `x`, `y`, `width`, `height`.
         '''
         if rect is None:
             self._pos = Vector()
@@ -61,16 +62,16 @@ class Rect(object):
 
     @property
     def topleft(self):
-        return self._pos + Vector.new(0, self.height)
+        return Vector.new(self.x, self.y + self.height)
     @property
     def topright(self):
-        return self._pos + self._size
+        return Vector.new(self.x + self.width, self.y + self.height)
     @property
     def bottomleft(self):
-        return Vector(self._pos)
+        return Vector(self)
     @property
     def bottomright(self):
-        return self._pos + Vector.new(self.width, 0)
+        return Vector.new(self.x + self.width, self.y)
     @property
     def center(self):
         return self._pos + self._size / 2
@@ -93,15 +94,18 @@ class Rect(object):
         return self._check_collision_from_dist_array(
             self._get_collision_dist_array(other))
 
-    def get_collision_direction(self, other):
+    def get_exit_direction(self, other):
+        '''Calculate the shortest distance to move `self` out of `other`.
+
+        :Parameters:
+            `other` : `Rect`
+                A `Rect` to be checked for collision direction.
+        :rtype: `Vector`
+        '''
         dist_array = self._get_collision_dist_array(other)
         if not self._check_collision_from_dist_array(dist_array):
             return Vector()
         xdist1, xdist2, ydist1, ydist2 = dist_array
-        xdist1 = abs(xdist1)
-        xdist2 = abs(xdist2)
-        ydist1 = abs(ydist1)
-        ydist2 = abs(ydist2)
-        if min(xdist1, xdist2) < min(ydist1, ydist2):
-            return Vector.new(copysign(1, xdist1 - xdist2), 0)
-        return Vector.new(0, copysign(1, ydist1 - ydist2))
+        if min(abs(xdist1), abs(xdist2)) < min(abs(ydist1), abs(ydist2)):
+            return Vector.new(min(xdist1, xdist2, key=abs), 0)
+        return Vector.new(0, min(ydist1, ydist2, key=abs))

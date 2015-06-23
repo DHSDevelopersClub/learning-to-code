@@ -136,16 +136,46 @@ class VectorMathTest(VectorTest):
     def setUp(self):
         self.make_xy_vector()
         self.make_polar_vector()
-        self.v4 = self.v2 + self.v3
-        self.v5 = self.v2 - self.v3
 
     def test_add(self):
-        self.assertEqual(self.v4.x, self.v2x + self.v3x)
-        self.assertEqual(self.v4.y, self.v2y + self.v3y)
+        v = self.v2 + self.v3
+        self.assertEqual(v.x, self.v2x + self.v3x)
+        self.assertEqual(v.y, self.v2y + self.v3y)
 
     def test_sub(self):
-        self.assertEqual(self.v5.x, self.v2x - self.v3x)
-        self.assertEqual(self.v5.y, self.v2y - self.v3y)
+        v = self.v2 - self.v3
+        self.assertEqual(v.x, self.v2x - self.v3x)
+        self.assertEqual(v.y, self.v2y - self.v3y)
+
+    def test_mult(self):
+        v = self.v2 * 5
+        self.assertEqual(v.x, self.v2x * 5)
+        self.assertEqual(v.y, self.v2y * 5)
+
+    def test_div(self):
+        v = self.v2 / 5
+        self.assertEqual(v.x, self.v2x / 5)
+        self.assertEqual(v.y, self.v2y / 5)
+
+    def test_iadd(self):
+        self.v2 += self.v3
+        self.assertEqual(self.v2.x, self.v2x + self.v3x)
+        self.assertEqual(self.v2.y, self.v2y + self.v3y)
+
+    def test_isub(self):
+        self.v2 -= self.v3
+        self.assertEqual(self.v2.x, self.v2x - self.v3x)
+        self.assertEqual(self.v2.y, self.v2y - self.v3y)
+
+    def test_imult(self):
+        self.v2 *= 5
+        self.assertEqual(self.v2.x, self.v2x * 5)
+        self.assertEqual(self.v2.y, self.v2y * 5)
+
+    def test_idiv(self):
+        self.v2 /= 5
+        self.assertEqual(self.v2.x, self.v2x / 5)
+        self.assertEqual(self.v2.y, self.v2y / 5)
 
 class VectorCompareTest(VectorTest):
 
@@ -168,44 +198,135 @@ class VectorCompareTest(VectorTest):
         self.assertFalse(self.v2 != self.v2copy)
 
 
-class CollisionTest(PhysicsUnitTest):
+class RectTest(PhysicsUnitTest):
 
-    class Collidable(object):
-        def __init__(self):
-            self.x = 0
-            self.y = 0
-            self.width = 10
-            self.height = 10
+    def test_copy(self):
+        copy = Rect(self.r)
+        self.assertEqual(self.r.x, copy.x)
+        self.assertEqual(self.r.y, copy.y)
+        self.assertEqual(self.r.width, copy.width)
+        self.assertEqual(self.r.height, copy.height)
+        self.assertFalse(self.r is copy)
+
+    def test_topleft(self):
+        self.assertEqual(self.r.topleft, self.tl)
+
+    def test_topright(self):
+        self.assertEqual(self.r.topright, self.tr)
+
+    def test_bottomleft(self):
+        self.assertEqual(self.r.bottomleft, self.bl)
+
+    def test_bottomright(self):
+        self.assertEqual(self.r.bottomright, self.br)
+
+    def test_center(self):
+        self.assertEqual(self.r.center, self.c)
+
+class BlankRectTest(RectTest):
 
     def setUp(self):
-        self.o1 = CollisionTest.Collidable()
-        self.o2 = CollisionTest.Collidable()
+        self.r = Rect()
+        self.tl = Vector()
+        self.tr = Vector()
+        self.bl = Vector()
+        self.br = Vector()
+        self.c = Vector()
+
+class SizedRectTest(RectTest):
+
+    def setUp(self):
+        self.r = Rect.new(4, 5, 10, 20)
+        self.tl = Vector.new(4, 25)
+        self.tr = Vector.new(14, 25)
+        self.bl = Vector.new(4, 5)
+        self.br = Vector.new(14, 5)
+        self.c = Vector.new(9, 15)
+
+
+class RectCollisionTest(PhysicsUnitTest):
+
+    def setUp(self):
+        self.o1 = Rect.new(0, 0, 10, 10)
+        self.o2 = Rect(self.o1)
 
     def test_full(self):
-        self.assertEqual(get_collision_direction(self.o1, self.o2), Vector.new(0, 1))
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(0, 10))
 
     def test_corner(self):
         self.o1.x = self.o1.y = 5
-        self.assertEqual(get_collision_direction(self.o1, self.o2), Vector.new(0, -1))
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(0, 5))
 
-    def test_vertical(self):
+    def test_vertical_positive(self):
         self.o1.y = 5
-        self.assertEqual(get_collision_direction(self.o1, self.o2), Vector.new(0, -1))
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(0, 5))
 
-    def test_horizontal(self):
+    def test_horizontal_positive(self):
         self.o1.x = 5
-        self.assertEqual(get_collision_direction(self.o1, self.o2), Vector.new(-1, 0))
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(5, 0))
 
-    def test_contain(self):
+    def test_vertical_negative(self):
+        self.o1.y = -5
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(0, -5))
+
+    def test_horizontal_negative(self):
+        self.o1.x = -5
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(-5, 0))
+
+    def test_contained(self):
         self.o1.x = self.o1.y = 5
         self.o2.width = self.o2.height = 20
-        self.assertTrue(is_colliding(self.o1, self.o2))
+        self.assertTrue(self.o1.collides_with(self.o2))
+
+    def test_contains_other(self):
+        self.o1.width = self.o1.height = 20
+        self.o2.x = self.o2.y = 5
+        self.assertTrue(self.o1.collides_with(self.o2))
 
     def test_no_collision(self):
         self.o1.x = 20
-        self.assertFalse(is_colliding(self.o1, self.o2))
+        self.assertFalse(self.o1.collides_with(self.o2))
         self.o1.y = 20
-        self.assertFalse(is_colliding(self.o1, self.o2))
+        self.assertFalse(self.o1.collides_with(self.o2))
+
+class LineCollisionTest(PhysicsUnitTest):
+
+    def setUp(self):
+        self.o1 = Rect.new(0, 0, 10, 10)
+        self.o2 = Rect.new(0, 0, 20, 0)
+
+    def test_corner(self):
+        self.o1.x = self.o1.y = -5
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(0, 5))
+
+    def test_vertical_positive(self):
+        self.o1.y = -2
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(0, 2))
+
+    def test_horizontal_positive(self):
+        self.o1.x = 18
+        self.o1.y = -5
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(2, 0))
+
+    def test_vertical_negative(self):
+        self.o1.y = -8
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(0, -2))
+
+    def test_horizontal_negative(self):
+        self.o1.x = -8
+        self.o1.y = -5
+        self.assertEqual(self.o1.get_exit_direction(self.o2), Vector.new(-2, 0))
+
+    def test_contained_point(self):
+        self.o2.x = self.o2.y = 5
+        self.o2.width = self.o2.height = 0
+        self.assertTrue(self.o1.collides_with(self.o2))
+
+    def test_contained_line(self):
+        self.o2.x = self.o2.y = 5
+        self.o2.width = 3
+        self.o2.height = 0
+        self.assertTrue(self.o1.collides_with(self.o2))
 
 
 def run(scope=None):
