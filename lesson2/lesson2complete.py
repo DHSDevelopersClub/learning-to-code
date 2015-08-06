@@ -21,9 +21,7 @@ paddle_sprite = Sprite(paddle_image, 0, 10)
 
 ball_image = load_image('ball.png')
 ball_sprite = Sprite(ball_image, 10, 300)
-ball_velocity = Vector()
-ball_velocity.x = 50
-ball_velocity.y = -50
+ball_velocity = Vector.new(50, -50)
 
 left_wall = Rect.new(0, 0, 0, window.height)
 top_wall = Rect.new(0, window.height, window.width, 0)
